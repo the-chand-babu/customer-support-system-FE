@@ -1,0 +1,23 @@
+#admin-dashboard{
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    div{
+        border: 1px solid lightgrey;
+        width: 200px;
+        height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        font-family: sans-serif;
+        font-weight: 600;
+        font-size: 16px;
+    }
+}

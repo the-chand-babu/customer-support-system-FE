@@ -11,8 +11,11 @@ import {
   Card,
   CardContent,
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 const LoginForm = () => {
+  const navigate = useNavigate();
+  const [unAthorizedUser, setUnAthorizedUser] = useState<any>(null);
   const [error, setError] = useState({
     username: false,
     password: false,
@@ -32,27 +35,62 @@ const LoginForm = () => {
       setError((prevError) => ({ ...prevError, [name]: false }));
     }, 300);
   };
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     let valid = true;
+
     if (formData.username === "") {
       setError((prevError) => ({ ...prevError, username: true }));
       valid = false;
-    } else {
-      setError((prevError) => ({ ...prevError, username: false }));
     }
+
     if (formData.password === "") {
       setError((prevError) => ({ ...prevError, password: true }));
       valid = false;
-    } else {
-      setError((prevError) => ({ ...prevError, password: false }));
     }
-    if (valid) {
-      // Proceed with form submission or API call
-      console.log("Form submitted", formData);
+
+    if (!valid) return;
+
+    try {
+      const res = await fetch(
+        "https://customer-support-system-be-12.onrender.com/api/v1/auth/login",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...formData, userName: formData.username }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (data?.userType === "Customer") {
+        navigate("/create-support");
+      }
+      if (data?.userType === "Employee" && !data?.isAdmin) {
+        navigate("/my-task");
+      }
+      if (data.userType === "Employee" && data.isAdmin) {
+        navigate("/admin/dashboard");
+      }
+
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          userType: data?.userType,
+          token: data?.token,
+          isAdmin: data?.isAdmin,
+        })
+      );
+    } catch (err: any) {
+      console.error("Login Error:", err.message);
+      setTimeout(() => {
+        setUnAthorizedUser(null);
+      }, 2000);
+      setUnAthorizedUser(err.message);
     }
   };
 
+  console.log("working fine", unAthorizedUser);
   return (
     <Container
       maxWidth="xs"
@@ -119,6 +157,14 @@ const LoginForm = () => {
               Login
             </Button>
           </form>
+          {
+            // Display error message if user type mismatch
+            unAthorizedUser && (
+              <Typography variant="body2" color="error" align="center">
+                {unAthorizedUser}
+              </Typography>
+            )
+          }
         </CardContent>
       </Card>
     </Container>
